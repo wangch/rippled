@@ -38,6 +38,10 @@ public:
     typedef std::shared_ptr <RippleState> pointer;
 
 public:
+    RippleState (
+        STLedgerEntry::ref ledgerEntry,
+        Account const& viewAccount);
+
     RippleState () = delete;
 
     virtual ~RippleState () { }
@@ -136,11 +140,6 @@ public:
     Json::Value getJson (int);
 
     Blob getRaw () const;
-
-private:
-    RippleState (
-        STLedgerEntry::ref ledgerEntry,
-        Account const& viewAccount);
 
 private:
     STLedgerEntry::pointer  mLedgerEntry;
