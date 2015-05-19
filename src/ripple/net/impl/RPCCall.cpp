@@ -750,7 +750,7 @@ private:
     Json::Value parseGatewayBalances (Json::Value const& jvParams)
     {
         unsigned int index = 0;
-        unsigned int size = jvParams.size ();
+        const unsigned int size = jvParams.size ();
 
         Json::Value jvRequest;
 
@@ -759,7 +759,7 @@ private:
             return RPC::make_param_error ("Invalid first parameter");
 
         if (param[0] != 'r')
-        { // a ledger is specified
+        {
             if (param.size() == 64)
                 jvRequest[jss::ledger_hash] = param;
             else
@@ -779,7 +779,6 @@ private:
                 (jvRequest["hotwallet"] = Json::arrayValue);
             while (index < size)
                 hotWallets.append (jvParams[index++].asString ());
-            
         }
 
         return jvRequest;

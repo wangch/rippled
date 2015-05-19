@@ -112,7 +112,7 @@ Json::Value doGatewayBalances (RPC::Context& context)
             else
             {
                 valid = false;
-	    }
+            }
         };
 
         if (hw.isArray())
