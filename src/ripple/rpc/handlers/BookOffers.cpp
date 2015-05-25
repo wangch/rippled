@@ -100,17 +100,17 @@ Json::Value doBookOffers (RPC::Context& context)
     }
     else
     {
-        pay_issuer = xrpAccount ();
+        pay_issuer = iccAccount ();
     }
 
-    if (isXRP (pay_currency) && ! isXRP (pay_issuer))
+    if (isICC (pay_currency) && ! isICC (pay_issuer))
         return RPC::make_error (
             rpcSRC_ISR_MALFORMED, "Unneeded field 'taker_pays.issuer' for "
-            "XRP currency specification.");
+            "ICC currency specification.");
 
-    if (!isXRP (pay_currency) && isXRP (pay_issuer))
+    if (!isICC (pay_currency) && isICC (pay_issuer))
         return RPC::make_error (rpcSRC_ISR_MALFORMED,
-            "Invalid field 'taker_pays.issuer', expected non-XRP issuer.");
+            "Invalid field 'taker_pays.issuer', expected non-ICC issuer.");
 
     Account get_issuer;
 
@@ -130,18 +130,18 @@ Json::Value doBookOffers (RPC::Context& context)
     }
     else
     {
-        get_issuer = xrpAccount ();
+        get_issuer = iccAccount ();
     }
 
 
-    if (isXRP (get_currency) && ! isXRP (get_issuer))
+    if (isICC (get_currency) && ! isICC (get_issuer))
         return RPC::make_error (rpcDST_ISR_MALFORMED,
             "Unneeded field 'taker_gets.issuer' for "
-                               "XRP currency specification.");
+                               "ICC currency specification.");
 
-    if (!isXRP (get_currency) && isXRP (get_issuer))
+    if (!isICC (get_currency) && isICC (get_issuer))
         return RPC::make_error (rpcDST_ISR_MALFORMED,
-            "Invalid field 'taker_gets.issuer', expected non-XRP issuer.");
+            "Invalid field 'taker_gets.issuer', expected non-ICC issuer.");
 
     RippleAddress raTakerID;
 

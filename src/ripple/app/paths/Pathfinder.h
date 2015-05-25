@@ -79,7 +79,7 @@ public:
         nt_SOURCE,     // The source account: with an issuer account, if needed.
         nt_ACCOUNTS,   // Accounts that connect from this source/currency.
         nt_BOOKS,      // Order books that connect to this currency.
-        nt_XRP_BOOK,   // The order book from this currency to XRP.
+        nt_ICC_BOOK,   // The order book from this currency to ICC.
         nt_DEST_BOOK,  // The order book to the destination currency/issuer.
         nt_DESTINATION // The destination account only.
     };
@@ -91,11 +91,11 @@ public:
     // in a path request.
     enum PaymentType
     {
-        pt_XRP_to_XRP,
-        pt_XRP_to_nonXRP,
-        pt_nonXRP_to_XRP,
-        pt_nonXRP_to_same,   // Destination currency is the same as source.
-        pt_nonXRP_to_nonXRP  // Destination currency is NOT the same as source.
+        pt_ICC_to_ICC,
+        pt_ICC_to_nonICC,
+        pt_nonICC_to_ICC,
+        pt_nonICC_to_same,   // Destination currency is the same as source.
+        pt_nonICC_to_nonICC  // Destination currency is NOT the same as source.
     };
 
     struct PathRank
@@ -202,8 +202,8 @@ private:
     // Add order books
     static std::uint32_t const afADD_BOOKS = 0x002;
 
-    // Add order book to XRP only
-    static std::uint32_t const afOB_XRP = 0x010;
+    // Add order book to ICC only
+    static std::uint32_t const afOB_ICC = 0x010;
 
     // Must link to destination currency
     static std::uint32_t const afOB_LAST = 0x040;

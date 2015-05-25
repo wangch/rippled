@@ -80,13 +80,13 @@ public:
 template <bool ByValue>
 bool isConsistent(IssueType<ByValue> const& ac)
 {
-    return isXRP (ac.currency) == isXRP (ac.account);
+    return isICC (ac.currency) == isICC (ac.account);
 }
 
 template <bool ByValue>
 std::string to_string (IssueType<ByValue> const& ac)
 {
-    if (isXRP (ac.account))
+    if (isICC (ac.account))
         return to_string (ac.currency);
 
     return to_string(ac.account) + "/" + to_string(ac.currency);
@@ -109,7 +109,7 @@ void hash_append (Hasher& h, IssueType<ByValue> const& r)
 
 /** Ordered comparison.
     The assets are ordered first by currency and then by account,
-    if the currency is not XRP.
+    if the currency is not ICC.
 */
 template <bool LhsByValue, bool RhsByValue>
 int compare (IssueType <LhsByValue> const& lhs,
@@ -118,7 +118,7 @@ int compare (IssueType <LhsByValue> const& lhs,
     int diff = compare (lhs.currency, rhs.currency);
     if (diff != 0)
         return diff;
-    if (isXRP (lhs.currency))
+    if (isICC (lhs.currency))
         return 0;
     return compare (lhs.account, rhs.account);
 }
@@ -178,10 +178,10 @@ typedef IssueType <false> IssueRef;
 
 //------------------------------------------------------------------------------
 
-/** Returns an asset specifier that represents XRP. */
-inline Issue const& xrpIssue ()
+/** Returns an asset specifier that represents ICC. */
+inline Issue const& iccIssue ()
 {
-    static Issue issue {xrpCurrency(), xrpAccount()};
+    static Issue issue {iccCurrency(), iccAccount()};
     return issue;
 }
 

@@ -53,19 +53,19 @@ class DeferredCredits_test : public beast::unit_test::suite
         testcase ("selfFunding");
 
         auto const keyType = KeyType::ed25519;
-        std::uint64_t const xrp = std::mega::num;
+        std::uint64_t const icc = std::mega::num;
 
         auto master = createAccount ("masterpassphrase", keyType);
 
         Ledger::pointer LCL;
         Ledger::pointer ledger;
-        std::tie (LCL, ledger) = createGenesisLedger (100000 * xrp, master);
+        std::tie (LCL, ledger) = createGenesisLedger (100000 * icc, master);
 
         auto accounts =
             createAndFundAccountsWithFlags (master,
                                             {"snd", "rcv", "gw1", "gw2"},
                                             keyType,
-                                            10000 * xrp,
+                                            10000 * icc,
                                             ledger,
                                             LCL,
                                             asfDefaultRipple);
@@ -120,19 +120,19 @@ class DeferredCredits_test : public beast::unit_test::suite
         testcase ("subtractCredits");
 
         auto const keyType = KeyType::ed25519;
-        std::uint64_t const xrp = std::mega::num;
+        std::uint64_t const icc = std::mega::num;
 
         auto master = createAccount ("masterpassphrase", keyType);
 
         Ledger::pointer LCL;
         Ledger::pointer ledger;
-        std::tie (LCL, ledger) = createGenesisLedger (100000 * xrp, master);
+        std::tie (LCL, ledger) = createGenesisLedger (100000 * icc, master);
 
         auto accounts =
                 createAndFundAccountsWithFlags (master,
                                                 {"alice", "gw1", "gw2"},
                                                 keyType,
-                                                10000 * xrp,
+                                                10000 * icc,
                                                 ledger,
                                                 LCL,
                                                 asfDefaultRipple);

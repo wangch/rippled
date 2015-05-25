@@ -214,7 +214,7 @@ static TxnTestData const txnTestArray [] =
     }
 })", TxnTestData::signFail | TxnTestData::submitFail},
 
-// Cannot create XRP to XRP paths.
+// Cannot create ICC to ICC paths.
 {R"({
     "command": "submit",
     "secret": "masterpassphrase",
@@ -284,7 +284,7 @@ static TxnTestData const txnTestArray [] =
     }
 })", TxnTestData::allGood},
 
-// Even though "Amount" may not be XRP for pathfinding, "SendMax" may be XRP.
+// Even though "Amount" may not be ICC for pathfinding, "SendMax" may be ICC.
 {R"({
     "command": "submit",
     "secret": "masterpassphrase",

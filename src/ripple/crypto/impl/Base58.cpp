@@ -61,7 +61,7 @@ Base58::Alphabet const& Base58::getBitcoinAlphabet ()
 Base58::Alphabet const& Base58::getRippleAlphabet ()
 {
     static Alphabet alphabet (
-        "rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz"
+        "ipshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqr1tuvAxyz"
         );
     return alphabet;
 }

@@ -66,13 +66,13 @@ BasicTaker::BasicTaker (
     // If we are dealing with a particular flavor, make sure that it's the
     // flavor we expect:
     assert (cross_type != CrossType::XrpToIou ||
-        (isXRP (issue_in ()) && !isXRP (issue_out ())));
+        (isICC (issue_in ()) && !isICC (issue_out ())));
 
     assert (cross_type != CrossType::IouToXrp ||
-        (!isXRP (issue_in ()) && isXRP (issue_out ())));
+        (!isICC (issue_in ()) && isICC (issue_out ())));
 
-    // And make sure we're not crossing XRP for XRP
-    assert (!isXRP (issue_in ()) || !isXRP (issue_out ()));
+    // And make sure we're not crossing ICC for ICC
+    assert (!isICC (issue_in ()) || !isICC (issue_out ()));
 
     // If this is a passive order, we adjust the quality so as to prevent offers
     // at the same quality level from being consumed.
@@ -171,7 +171,7 @@ qual_mul (Amount const& amount, Quality const& quality, Amount const& output)
 }
 
 BasicTaker::Flow
-BasicTaker::flow_xrp_to_iou (
+BasicTaker::flow_icc_to_iou (
     Amounts const& order, Quality quality,
     Amount const& owner_funds, Amount const& taker_funds,
     Rate const& rate_out)
@@ -217,7 +217,7 @@ BasicTaker::flow_xrp_to_iou (
 }
 
 BasicTaker::Flow
-BasicTaker::flow_iou_to_xrp (
+BasicTaker::flow_iou_to_icc (
     Amounts const& order, Quality quality,
     Amount const& owner_funds, Amount const& taker_funds,
     Rate const& rate_in)
@@ -328,12 +328,12 @@ BasicTaker::do_cross (Amounts offer, Quality quality, Account const& owner)
 
     if (cross_type_ == CrossType::XrpToIou)
     {
-        result = flow_xrp_to_iou (offer, quality, owner_funds, taker_funds,
+        result = flow_icc_to_iou (offer, quality, owner_funds, taker_funds,
             out_rate (owner, account ()));
     }
     else if (cross_type_ == CrossType::IouToXrp)
     {
-        result = flow_iou_to_xrp (offer, quality, owner_funds, taker_funds,
+        result = flow_iou_to_icc (offer, quality, owner_funds, taker_funds,
             in_rate (owner, account ()));
     }
     else
@@ -380,37 +380,37 @@ BasicTaker::do_cross (
     if (account () == owner2)
         leg2_out_funds = std::max (leg2_out_funds, offer2.out);
 
-    // The amount available to flow via XRP is the amount that the owner of the
+    // The amount available to flow via ICC is the amount that the owner of the
     // first leg of the bridge has, up to the first leg's output.
     //
     // But, when both legs of a bridge are owned by the same person, the amount
-    // of XRP that can flow between the two legs is, essentially, infinite
-    // since all the owner is doing is taking out XRP of his left pocket
+    // of ICC that can flow between the two legs is, essentially, infinite
+    // since all the owner is doing is taking out ICC of his left pocket
     // and putting it in his right pocket. In that case, we set the available
-    // XRP to the largest of the two offers.
-    auto xrp_funds = get_funds (owner1, offer1.out);
+    // ICC to the largest of the two offers.
+    auto icc_funds = get_funds (owner1, offer1.out);
 
     if (owner1 == owner2)
-        xrp_funds = std::max (offer1.out, offer2.in);
+        icc_funds = std::max (offer1.out, offer2.in);
 
     auto const leg1_rate = in_rate (owner1, account ());
     auto const leg2_rate = out_rate (owner2, account ());
 
     // Attempt to determine the maximal flow that can be achieved across each
     // leg independent of the other.
-    auto flow1 = flow_iou_to_xrp (offer1, quality1, xrp_funds, leg1_in_funds, leg1_rate);
+    auto flow1 = flow_iou_to_icc (offer1, quality1, icc_funds, leg1_in_funds, leg1_rate);
 
     if (!flow1.sanity_check ())
         throw std::logic_error ("Computed flow1 fails sanity check.");
 
-    auto flow2 = flow_xrp_to_iou (offer2, quality2, leg2_out_funds, xrp_funds, leg2_rate);
+    auto flow2 = flow_icc_to_iou (offer2, quality2, leg2_out_funds, icc_funds, leg2_rate);
 
     if (!flow2.sanity_check ())
         throw std::logic_error ("Computed flow2 fails sanity check.");
 
     // We now have the maximal flows across each leg individually. We need to
-    // equalize them, so that the amount of XRP that flows out of the first leg
-    // is the same as the amount of XRP that flows into the second leg. We take
+    // equalize them, so that the amount of ICC that flows out of the first leg
+    // is the same as the amount of ICC that flows into the second leg. We take
     // the side which is the limiting factor (if any) and adjust the other.
     if (flow1.order.out < flow2.order.in)
     {
@@ -442,7 +442,7 @@ std::uint32_t
 Taker::calculateRate (
     LedgerView& view, Account const& issuer, Account const& account)
 {
-    return isXRP (issuer) || (account == issuer)
+    return isICC (issuer) || (account == issuer)
         ? QUALITY_ONE
         : rippleTransferRate (view, issuer);
 }
@@ -453,7 +453,7 @@ Taker::Taker (CrossType cross_type, LedgerView& view, Account const& account,
         calculateRate(view, offer.in.getIssuer(), account),
         calculateRate(view, offer.out.getIssuer(), account))
     , m_view (view)
-    , xrp_flow_ (0)
+    , icc_flow_ (0)
     , direct_crossings_ (0)
     , bridge_crossings_ (0)
 {
@@ -479,13 +479,13 @@ Taker::get_funds (Account const& account, Amount const& funds) const
     return m_view.accountFunds (account, funds, fhZERO_IF_FROZEN);
 }
 
-TER Taker::transfer_xrp (
+TER Taker::transfer_icc (
     Account const& from,
     Account const& to,
     Amount const& amount)
 {
-    if (!isXRP (amount))
-        throw std::logic_error ("Using transfer_xrp with IOU");
+    if (!isICC (amount))
+        throw std::logic_error ("Using transfer_icc with IOU");
 
     if (from == to)
         return tesSUCCESS;
@@ -494,7 +494,7 @@ TER Taker::transfer_xrp (
     if (amount == zero)
         return tesSUCCESS;
 
-    return m_view.transfer_xrp (from, to, amount);
+    return m_view.transfer_icc (from, to, amount);
 }
 
 TER Taker::redeem_iou (
@@ -502,8 +502,8 @@ TER Taker::redeem_iou (
     Amount const& amount,
     Issue const& issue)
 {
-    if (isXRP (amount))
-        throw std::logic_error ("Using redeem_iou with XRP");
+    if (isICC (amount))
+        throw std::logic_error ("Using redeem_iou with ICC");
 
     if (account == issue.account)
         return tesSUCCESS;
@@ -530,8 +530,8 @@ TER Taker::issue_iou (
     Amount const& amount,
     Issue const& issue)
 {
-    if (isXRP (amount))
-        throw std::logic_error ("Using issue_iou with XRP");
+    if (isICC (amount))
+        throw std::logic_error ("Using issue_iou with ICC");
 
     if (account == issue.account)
         return tesSUCCESS;
@@ -554,7 +554,7 @@ Taker::fill (BasicTaker::Flow const& flow, Offer const& offer)
 
     if (cross_type () != CrossType::XrpToIou)
     {
-        assert (!isXRP (flow.order.in));
+        assert (!isICC (flow.order.in));
 
         if(result == tesSUCCESS)
             result = redeem_iou (account (), flow.issuers.in, flow.issuers.in.issue ());
@@ -564,16 +564,16 @@ Taker::fill (BasicTaker::Flow const& flow, Offer const& offer)
     }
     else
     {
-        assert (isXRP (flow.order.in));
+        assert (isICC (flow.order.in));
 
         if (result == tesSUCCESS)
-            result = transfer_xrp (account (), offer.owner (), flow.order.in);
+            result = transfer_icc (account (), offer.owner (), flow.order.in);
     }
 
     // Now send funds from the account whose offer we're taking
     if (cross_type () != CrossType::IouToXrp)
     {
-        assert (!isXRP (flow.order.out));
+        assert (!isICC (flow.order.out));
 
         if(result == tesSUCCESS)
             result = redeem_iou (offer.owner (), flow.issuers.out, flow.issuers.out.issue ());
@@ -583,10 +583,10 @@ Taker::fill (BasicTaker::Flow const& flow, Offer const& offer)
     }
     else
     {
-        assert (isXRP (flow.order.out));
+        assert (isICC (flow.order.out));
 
         if (result == tesSUCCESS)
-            result = transfer_xrp (offer.owner (), account (), flow.order.out);
+            result = transfer_icc (offer.owner (), account (), flow.order.out);
     }
 
     if (result == tesSUCCESS)
@@ -617,9 +617,9 @@ Taker::fill (
             result = issue_iou (leg1.owner (), flow1.order.in, flow1.order.in.issue ());
     }
 
-    // leg1 to leg2: bridging over XRP
+    // leg1 to leg2: bridging over ICC
     if (result == tesSUCCESS)
-        result = transfer_xrp (leg1.owner (), leg2.owner (), flow1.order.out);
+        result = transfer_icc (leg1.owner (), leg2.owner (), flow1.order.out);
 
     // leg2 to Taker: IOU
     if (leg2.owner () != account ())
@@ -634,7 +634,7 @@ Taker::fill (
     if (result == tesSUCCESS)
     {
         bridge_crossings_++;
-        xrp_flow_ += flow1.order.out;
+        icc_flow_ += flow1.order.out;
     }
 
     return result;
@@ -643,8 +643,8 @@ Taker::fill (
 TER
 Taker::cross (Offer const& offer)
 {
-    // In direct crossings, at least one leg must not be XRP.
-    if (isXRP (offer.amount ().in) && isXRP (offer.amount ().out))
+    // In direct crossings, at least one leg must not be ICC.
+    if (isICC (offer.amount ().in) && isICC (offer.amount ().out))
         return tefINTERNAL;
 
     auto const amount = do_cross (
@@ -656,9 +656,9 @@ Taker::cross (Offer const& offer)
 TER
 Taker::cross (Offer const& leg1, Offer const& leg2)
 {
-    // In bridged crossings, XRP must can't be the input to the first leg
+    // In bridged crossings, ICC must can't be the input to the first leg
     // or the output of the second leg.
-    if (isXRP (leg1.amount ().in) || isXRP (leg2.amount ().out))
+    if (isICC (leg1.amount ().in) || isICC (leg2.amount ().out))
         return tefINTERNAL;
 
     auto ret = do_cross (

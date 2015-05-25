@@ -27,12 +27,12 @@ namespace ripple {
 CurrencySet accountDestCurrencies
         (RippleAddress const& raAccountID,
          RippleLineCache::ref cache,
-         bool includeXRP);
+         bool includeICC);
 
 CurrencySet accountSourceCurrencies
         (RippleAddress const& raAccountID,
          RippleLineCache::ref lrLedger,
-         bool includeXRP);
+         bool includeICC);
 
 } // ripple
 

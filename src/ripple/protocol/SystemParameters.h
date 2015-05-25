@@ -59,7 +59,7 @@ static inline
 std::string const&
 systemCurrencyCode ()
 {
-    static std::string const code = "XRP";
+    static std::string const code = "ICC";
     return code;
 }
 

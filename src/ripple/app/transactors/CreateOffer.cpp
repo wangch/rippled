@@ -47,7 +47,7 @@ private:
     checkAcceptAsset(IssueRef issue) const
     {
         // Only valid for custom currencies
-        assert (!isXRP (issue.currency));
+        assert (!isICC (issue.currency));
 
         SLE::pointer const issuerAccount = mEngine->view().entryCache (
             ltACCOUNT_ROOT, getAccountRootIndex (issue.account));
@@ -151,19 +151,19 @@ private:
     {
         auto const& taker_amount = taker.original_offer ();
 
-        assert (!isXRP (taker_amount.in) && !isXRP (taker_amount.out));
+        assert (!isICC (taker_amount.in) && !isICC (taker_amount.out));
 
-        if (isXRP (taker_amount.in) || isXRP (taker_amount.out))
-            throw std::logic_error ("Bridging with XRP and an endpoint.");
+        if (isICC (taker_amount.in) || isICC (taker_amount.out))
+            throw std::logic_error ("Bridging with ICC and an endpoint.");
 
         core::OfferStream offers_direct (view, view_cancel,
             Book (taker.issue_in (), taker.issue_out ()), when, m_journal);
 
         core::OfferStream offers_leg1 (view, view_cancel,
-            Book (taker.issue_in (), xrpIssue ()), when, m_journal);
+            Book (taker.issue_in (), iccIssue ()), when, m_journal);
 
         core::OfferStream offers_leg2 (view, view_cancel,
-            Book (xrpIssue (), taker.issue_out ()), when, m_journal);
+            Book (iccIssue (), taker.issue_out ()), when, m_journal);
 
         TER cross_result = tesSUCCESS;
 
@@ -512,7 +512,7 @@ public:
         if (saTakerPays.isNative () && saTakerGets.isNative ())
         {
             if (m_journal.debug) m_journal.warning <<
-                "Malformed offer: XRP for XRP";
+                "Malformed offer: ICC for ICC";
             return temBAD_OFFER;
         }
         if (saTakerPays <= zero || saTakerGets <= zero)
@@ -534,7 +534,7 @@ public:
                 "Malformed offer: redundant offer";
             return temREDUNDANT;
         }
-        // We don't allow a non-native currency to use the currency code XRP.
+        // We don't allow a non-native currency to use the currency code ICC.
         if (badCurrency() == uPaysCurrency || badCurrency() == uGetsCurrency)
         {
             if (m_journal.debug) m_journal.warning <<
@@ -874,12 +874,12 @@ transact_CreateOffer (
 
     core::CrossType cross_type = core::CrossType::IouToIou;
 
-    bool const pays_xrp = txn.getFieldAmount (sfTakerPays).isNative ();
-    bool const gets_xrp = txn.getFieldAmount (sfTakerGets).isNative ();
+    bool const pays_icc = txn.getFieldAmount (sfTakerPays).isNative ();
+    bool const gets_icc = txn.getFieldAmount (sfTakerGets).isNative ();
 
-    if (pays_xrp && !gets_xrp)
+    if (pays_icc && !gets_icc)
         cross_type = core::CrossType::IouToXrp;
-    else if (gets_xrp && !pays_xrp)
+    else if (gets_icc && !pays_icc)
         cross_type = core::CrossType::XrpToIou;
 
     return CreateOffer (cross_type, txn, params, engine).apply ();

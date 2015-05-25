@@ -25,13 +25,13 @@ namespace ripple {
 CurrencySet accountSourceCurrencies (
     RippleAddress const& raAccountID,
     RippleLineCache::ref lrCache,
-    bool includeXRP)
+    bool includeICC)
 {
     CurrencySet currencies;
 
     // YYY Only bother if they are above reserve
-    if (includeXRP)
-        currencies.insert (xrpCurrency());
+    if (includeICC)
+        currencies.insert (iccCurrency());
 
     // List of ripple lines.
     auto& rippleLines (lrCache->getRippleLines (raAccountID.getAccountID ()));
@@ -63,12 +63,12 @@ CurrencySet accountSourceCurrencies (
 CurrencySet accountDestCurrencies (
     RippleAddress const& raAccountID,
     RippleLineCache::ref lrCache,
-    bool includeXRP)
+    bool includeICC)
 {
     CurrencySet currencies;
 
-    if (includeXRP)
-        currencies.insert (xrpCurrency());
+    if (includeICC)
+        currencies.insert (iccCurrency());
     // Even if account doesn't exist
 
     // List of ripple lines.

@@ -101,7 +101,7 @@ bool PathState::lessPriority (PathState const& lhs, PathState const& rhs)
 //   account.
 // - Offers can only go directly to another offer if the currency and issuer are
 //   an exact match.
-// - Real issuers must be specified for non-XRP.
+// - Real issuers must be specified for non-ICC.
 TER PathState::pushImpliedNodes (
     Account const& account,    // --> Delivering to this account.
     Currency const& currency,  // --> Delivering this currency.
@@ -117,25 +117,25 @@ TER PathState::pushImpliedNodes (
     if (nodes_.back ().issue_.currency != currency)
     {
         // Currency is different, need to convert via an offer from an order
-        // book.  xrpAccount() does double duty as signaling "this is an order
+        // book.  iccAccount() does double duty as signaling "this is an order
         // book".
 
         // Corresponds to "Implies an offer directory" in the diagram, currently
         // at http://goo.gl/Uj3HAB.
 
-        auto type = isXRP(currency) ? STPathElement::typeCurrency
+        auto type = isICC(currency) ? STPathElement::typeCurrency
             : STPathElement::typeCurrency | STPathElement::typeIssuer;
 
         // The offer's output is what is now wanted.
-        // xrpAccount() is a placeholder for offers.
-        resultCode = pushNode (type, xrpAccount(), currency, issuer);
+        // iccAccount() is a placeholder for offers.
+        resultCode = pushNode (type, iccAccount(), currency, issuer);
     }
 
 
-    // For ripple, non-XRP, ensure the issuer is on at least one side of the
+    // For ripple, non-ICC, ensure the issuer is on at least one side of the
     // transaction.
     if (resultCode == tesSUCCESS
-        && !isXRP(currency)
+        && !isICC(currency)
         && nodes_.back ().account_ != issuer
         // Previous is not issuing own IOUs.
         && account != issuer)
@@ -205,9 +205,9 @@ TER PathState::pushNode (
         WriteLog (lsDEBUG, RippleCalc) << "pushNode: bad bits.";
         resultCode = temBAD_PATH;
     }
-    else if (hasIssuer && isXRP (node.issue_))
+    else if (hasIssuer && isICC (node.issue_))
     {
-        WriteLog (lsDEBUG, RippleCalc) << "pushNode: issuer specified for XRP.";
+        WriteLog (lsDEBUG, RippleCalc) << "pushNode: issuer specified for ICC.";
 
         resultCode = temBAD_PATH;
     }
@@ -230,7 +230,7 @@ TER PathState::pushNode (
         // Account link
         node.account_ = account;
         node.issue_.account = hasIssuer ? issuer :
-                (isXRP (node.issue_) ? xrpAccount() : account);
+                (isICC (node.issue_) ? iccAccount() : account);
         // Zero value - for accounts.
         node.saRevRedeem = STAmount ({node.issue_.currency, account});
         node.saRevIssue = node.saRevRedeem;
@@ -258,7 +258,7 @@ TER PathState::pushNode (
             resultCode = pushImpliedNodes (
                 node.account_,
                 node.issue_.currency,
-                isXRP(node.issue_.currency) ? xrpAccount() : account);
+                isICC(node.issue_.currency) ? iccAccount() : account);
 
             // Note: backNode may no longer be the immediately previous node.
         }
@@ -359,9 +359,9 @@ TER PathState::pushNode (
         // issuer.
         if (hasIssuer)
             node.issue_.account = issuer;
-        else if (isXRP (node.issue_.currency))
-            node.issue_.account = xrpAccount();
-        else if (isXRP (backNode.issue_.account))
+        else if (isICC (node.issue_.currency))
+            node.issue_.account = iccAccount();
+        else if (isICC (backNode.issue_.account))
             node.issue_.account = backNode.account_;
         else
             node.issue_.account = backNode.issue_.account;
@@ -388,7 +388,7 @@ TER PathState::pushNode (
 
             // Insert intermediary issuer account if needed.
             resultCode   = pushImpliedNodes (
-                xrpAccount(), // Rippling, but offers don't have an account.
+                iccAccount(), // Rippling, but offers don't have an account.
                 backNode.issue_.currency,
                 backNode.issue_.account);
         }
@@ -431,8 +431,8 @@ TER PathState::expandPath (
     Currency const& currencyOutID = saOutReq.getCurrency ();
     Account const& issuerOutID = saOutReq.getIssuer ();
     Account const& uSenderIssuerID
-        = isXRP(uMaxCurrencyID) ? xrpAccount() : uSenderID;
-    // Sender is always issuer for non-XRP.
+        = isICC(uMaxCurrencyID) ? iccAccount() : uSenderID;
+    // Sender is always issuer for non-ICC.
 
     WriteLog (lsTRACE, RippleCalc)
         << "expandPath> " << spSourcePath.getJson (0);
@@ -441,23 +441,23 @@ TER PathState::expandPath (
 
     terStatus = tesSUCCESS;
 
-    // XRP with issuer is malformed.
-    if ((isXRP (uMaxCurrencyID) && !isXRP (uMaxIssuerID))
-        || (isXRP (currencyOutID) && !isXRP (issuerOutID)))
+    // ICC with issuer is malformed.
+    if ((isICC (uMaxCurrencyID) && !isICC (uMaxIssuerID))
+        || (isICC (currencyOutID) && !isICC (issuerOutID)))
     {
         WriteLog (lsDEBUG, RippleCalc)
-            << "expandPath> issuer with XRP";
+            << "expandPath> issuer with ICC";
         terStatus   = temBAD_PATH;
     }
 
     // Push sending node.
-    // For non-XRP, issuer is always sending account.
+    // For non-ICC, issuer is always sending account.
     // - Trying to expand, not-compact.
     // - Every issuer will be traversed through.
     if (terStatus == tesSUCCESS)
     {
         terStatus   = pushNode (
-            !isXRP(uMaxCurrencyID)
+            !isICC(uMaxCurrencyID)
             ? STPathElement::typeAccount | STPathElement::typeCurrency |
               STPathElement::typeIssuer
             : STPathElement::typeAccount | STPathElement::typeCurrency,
@@ -476,7 +476,7 @@ TER PathState::expandPath (
     if (tesSUCCESS == terStatus && uMaxIssuerID != uSenderIssuerID)
     {
         // May have an implied account node.
-        // - If it was XRP, then issuers would have matched.
+        // - If it was ICC, then issuers would have matched.
 
         // Figure out next node properties for implied node.
         const auto uNxtCurrencyID  = spSourcePath.size ()
@@ -489,11 +489,11 @@ TER PathState::expandPath (
         // understands it.
         const auto nextAccountID   = spSourcePath.size ()
                 ? Account(spSourcePath. front ().getAccountID ())
-                : !isXRP(currencyOutID)
+                : !isICC(currencyOutID)
                 ? (issuerOutID == uReceiverID)
                 ? Account(uReceiverID)
                 : Account(issuerOutID)                      // Use implied node.
-                : xrpAccount();
+                : iccAccount();
 
         WriteLog (lsDEBUG, RippleCalc)
             << "expandPath: implied check:"
@@ -505,7 +505,7 @@ TER PathState::expandPath (
         // Can't just use push implied, because it can't compensate for next
         // account.
         if (!uNxtCurrencyID
-            // Next is XRP, offer next. Must go through issuer.
+            // Next is ICC, offer next. Must go through issuer.
             || uMaxCurrencyID != uNxtCurrencyID
             // Next is different currency, offer next...
             || uMaxIssuerID != nextAccountID)
@@ -519,7 +519,7 @@ TER PathState::expandPath (
 
             // Add account implied by SendMax.
             terStatus = pushNode (
-                !isXRP(uMaxCurrencyID)
+                !isICC(uMaxCurrencyID)
                     ? STPathElement::typeAccount | STPathElement::typeCurrency |
                       STPathElement::typeIssuer
                     : STPathElement::typeAccount | STPathElement::typeCurrency,
@@ -541,7 +541,7 @@ TER PathState::expandPath (
     }
 
     if (terStatus == tesSUCCESS
-        && !isXRP(currencyOutID)               // Next is not XRP
+        && !isICC(currencyOutID)               // Next is not ICC
         && issuerOutID != uReceiverID)         // Out issuer is not receiver
     {
         assert (!nodes_.empty ());
@@ -559,7 +559,7 @@ TER PathState::expandPath (
                 << " issuer=" << issuerOutID;
 
             terStatus   = pushNode (
-                !isXRP(currencyOutID)
+                !isICC(currencyOutID)
                     ? STPathElement::typeAccount | STPathElement::typeCurrency |
                       STPathElement::typeIssuer
                     : STPathElement::typeAccount | STPathElement::typeCurrency,
@@ -575,7 +575,7 @@ TER PathState::expandPath (
         // Last node is always an account.
 
         terStatus   = pushNode (
-            !isXRP(currencyOutID)
+            !isICC(currencyOutID)
                 ? STPathElement::typeAccount | STPathElement::typeCurrency |
                    STPathElement::typeIssuer
                : STPathElement::typeAccount | STPathElement::typeCurrency,

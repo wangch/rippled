@@ -123,13 +123,13 @@ bool to_issuer(Account& issuer, std::string const& s)
     return success;
 }
 
-Account const& xrpAccount()
+Account const& iccAccount()
 {
     static Account const account(0);
     return account;
 }
 
-Currency const& xrpCurrency()
+Currency const& iccCurrency()
 {
     static Currency const currency(0);
     return currency;

@@ -118,34 +118,34 @@ public:
         {
             testcase ("set value (native)");
 
-            Issue const xrp (xrpIssue ());
+            Issue const icc (iccIssue ());
 
-            // fractional XRP (i.e. drops)
-            testSetValue ("1", xrp);
-            testSetValue ("22", xrp);
-            testSetValue ("333", xrp);
-            testSetValue ("4444", xrp);
-            testSetValue ("55555", xrp);
-            testSetValue ("666666", xrp);
+            // fractional ICC (i.e. drops)
+            testSetValue ("1", icc);
+            testSetValue ("22", icc);
+            testSetValue ("333", icc);
+            testSetValue ("4444", icc);
+            testSetValue ("55555", icc);
+            testSetValue ("666666", icc);
 
-            // 1 XRP up to 100 billion, in powers of 10 (in drops)
-            testSetValue ("1000000", xrp);
-            testSetValue ("10000000", xrp);
-            testSetValue ("100000000", xrp);
-            testSetValue ("1000000000", xrp);
-            testSetValue ("10000000000", xrp);
-            testSetValue ("100000000000", xrp);
-            testSetValue ("1000000000000", xrp);
-            testSetValue ("10000000000000", xrp);
-            testSetValue ("100000000000000", xrp);
-            testSetValue ("1000000000000000", xrp);
-            testSetValue ("10000000000000000", xrp);
-            testSetValue ("100000000000000000", xrp);
+            // 1 ICC up to 100 billion, in powers of 10 (in drops)
+            testSetValue ("1000000", icc);
+            testSetValue ("10000000", icc);
+            testSetValue ("100000000", icc);
+            testSetValue ("1000000000", icc);
+            testSetValue ("10000000000", icc);
+            testSetValue ("100000000000", icc);
+            testSetValue ("1000000000000", icc);
+            testSetValue ("10000000000000", icc);
+            testSetValue ("100000000000000", icc);
+            testSetValue ("1000000000000000", icc);
+            testSetValue ("10000000000000000", icc);
+            testSetValue ("100000000000000000", icc);
 
             // Invalid native values:
-            testSetValue ("1.1", xrp, false);
-            testSetValue ("100000000000000001", xrp, false);
-            testSetValue ("1000000000000000000", xrp, false);
+            testSetValue ("1.1", icc, false);
+            testSetValue ("100000000000000001", icc, false);
+            testSetValue ("1000000000000000000", icc, false);
         }
 
         {
@@ -249,7 +249,7 @@ public:
         unexpected (STAmount ().getText () != "0", "STAmount fail");
         unexpected (STAmount (31).getText () != "31", "STAmount fail");
         unexpected (STAmount (310).getText () != "310", "STAmount fail");
-        unexpected (to_string (Currency ()) != "XRP", "cHC(XRP)");
+        unexpected (to_string (Currency ()) != "ICC", "cHC(ICC)");
         Currency c;
         unexpected (!to_currency (c, "USD"), "create USD currency");
         unexpected (to_string (c) != "USD", "check USD currency");
@@ -335,11 +335,11 @@ public:
         unexpected (STAmount (noIssue(), 31, -2).getText () != "0.31", "STAmount fail");
         unexpected (multiply (STAmount (noIssue(), 20), STAmount (3), noIssue()).getText () != "60",
             "STAmount multiply fail 1");
-        unexpected (multiply (STAmount (noIssue(), 20), STAmount (3), xrpIssue ()).getText () != "60",
+        unexpected (multiply (STAmount (noIssue(), 20), STAmount (3), iccIssue ()).getText () != "60",
             "STAmount multiply fail 2");
         unexpected (multiply (STAmount (20), STAmount (3), noIssue()).getText () != "60",
             "STAmount multiply fail 3");
-        unexpected (multiply (STAmount (20), STAmount (3), xrpIssue ()).getText () != "60",
+        unexpected (multiply (STAmount (20), STAmount (3), iccIssue ()).getText () != "60",
             "STAmount multiply fail 4");
 
         if (divide (STAmount (noIssue(), 60), STAmount (3), noIssue()).getText () != "20")
@@ -354,13 +354,13 @@ public:
             pass ();
         }
 
-        unexpected (divide (STAmount (noIssue(), 60), STAmount (3), xrpIssue ()).getText () != "20",
+        unexpected (divide (STAmount (noIssue(), 60), STAmount (3), iccIssue ()).getText () != "20",
             "STAmount divide fail");
 
         unexpected (divide (STAmount (noIssue(), 60), STAmount (noIssue(), 3), noIssue()).getText () != "20",
             "STAmount divide fail");
 
-        unexpected (divide (STAmount (noIssue(), 60), STAmount (noIssue(), 3), xrpIssue ()).getText () != "20",
+        unexpected (divide (STAmount (noIssue(), 60), STAmount (noIssue(), 3), iccIssue ()).getText () != "20",
             "STAmount divide fail");
 
         STAmount a1 (noIssue(), 60), a2 (noIssue(), 10, -1);
@@ -461,19 +461,19 @@ public:
 
 #if 0
         // TODO(tom): this test makes no sense - we should have no way to have
-        // the currency not be XRP while the account is XRP.
-        bigDsmall = divide (smallValue, bigNative, noCurrency(), xrpAccount ());
+        // the currency not be ICC while the account is ICC.
+        bigDsmall = divide (smallValue, bigNative, noCurrency(), iccAccount ());
 #endif
 
         expect (bigDsmall == zero,
             "small/bigNative != 0: " + bigDsmall.getText ());
 
-        bigDsmall = divide (smallValue, bigValue, xrpIssue ());
+        bigDsmall = divide (smallValue, bigValue, iccIssue ());
 
         expect (bigDsmall == zero,
             "(small/big)->N != 0: " + bigDsmall.getText ());
 
-        bigDsmall = divide (smallValue, bigNative, xrpIssue ());
+        bigDsmall = divide (smallValue, bigNative, iccIssue ());
 
         expect (bigDsmall == zero,
             "(small/bigNative)->N != 0: " + bigDsmall.getText ());
@@ -533,9 +533,9 @@ public:
         WriteLog (lsINFO, STAmount) << fourThirdsB;
         WriteLog (lsINFO, STAmount) << fourThirdsC;
 
-        STAmount dripTest1 = mulRound (twoThird2, two, xrpIssue (), false);
-        STAmount dripTest2 = multiply (twoThird2, two, xrpIssue ());
-        STAmount dripTest3 = mulRound (twoThird2, two, xrpIssue (), true);
+        STAmount dripTest1 = mulRound (twoThird2, two, iccIssue (), false);
+        STAmount dripTest2 = multiply (twoThird2, two, iccIssue ());
+        STAmount dripTest3 = mulRound (twoThird2, two, iccIssue (), true);
         WriteLog (lsINFO, STAmount) << dripTest1;
         WriteLog (lsINFO, STAmount) << dripTest2;
         WriteLog (lsINFO, STAmount) << dripTest3;

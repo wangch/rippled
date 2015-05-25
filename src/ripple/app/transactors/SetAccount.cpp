@@ -91,12 +91,12 @@ public:
         }
 
         //
-        // DisallowXRP
+        // DisallowICC
         //
-        bool bSetDisallowXRP   = (uTxFlags & tfDisallowXRP) || (uSetFlag == asfDisallowXRP);
-        bool bClearDisallowXRP = (uTxFlags & tfAllowXRP) || (uClearFlag == asfDisallowXRP);
+        bool bSetDisallowICC   = (uTxFlags & tfDisallowICC) || (uSetFlag == asfDisallowICC);
+        bool bClearDisallowICC = (uTxFlags & tfAllowICC) || (uClearFlag == asfDisallowICC);
 
-        if (bSetDisallowXRP && bClearDisallowXRP)
+        if (bSetDisallowICC && bClearDisallowICC)
         {
             m_journal.trace << "Malformed transaction: Contradictory flags set.";
             return temINVALID_FLAG;
@@ -132,8 +132,8 @@ public:
         bool bClearRequireDest = (uTxFlags & tfOptionalDestTag) || (uClearFlag == asfRequireDest);
         bool bSetRequireAuth   = (uTxFlags & tfRequireAuth) || (uSetFlag == asfRequireAuth);
         bool bClearRequireAuth = (uTxFlags & tfOptionalAuth) || (uClearFlag == asfRequireAuth);
-        bool bSetDisallowXRP   = (uTxFlags & tfDisallowXRP) || (uSetFlag == asfDisallowXRP);
-        bool bClearDisallowXRP = (uTxFlags & tfAllowXRP) || (uClearFlag == asfDisallowXRP);
+        bool bSetDisallowICC   = (uTxFlags & tfDisallowICC) || (uSetFlag == asfDisallowICC);
+        bool bClearDisallowICC = (uTxFlags & tfAllowICC) || (uClearFlag == asfDisallowICC);
 
         //
         // RequireAuth
@@ -172,18 +172,18 @@ public:
         }
 
         //
-        // DisallowXRP
+        // DisallowICC
         //
-        if (bSetDisallowXRP && !(uFlagsIn & lsfDisallowXRP))
+        if (bSetDisallowICC && !(uFlagsIn & lsfDisallowICC))
         {
-            m_journal.trace << "Set lsfDisallowXRP.";
-            uFlagsOut |= lsfDisallowXRP;
+            m_journal.trace << "Set lsfDisallowICC.";
+            uFlagsOut |= lsfDisallowICC;
         }
 
-        if (bClearDisallowXRP && (uFlagsIn & lsfDisallowXRP))
+        if (bClearDisallowICC && (uFlagsIn & lsfDisallowICC))
         {
-            m_journal.trace << "Clear lsfDisallowXRP.";
-            uFlagsOut &= ~lsfDisallowXRP;
+            m_journal.trace << "Clear lsfDisallowICC.";
+            uFlagsOut &= ~lsfDisallowICC;
         }
 
         //

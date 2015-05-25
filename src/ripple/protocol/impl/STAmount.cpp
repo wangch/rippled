@@ -102,12 +102,12 @@ STAmount::STAmount(SerialIter& sit, SField const& name)
     Issue issue;
     issue.currency.copyFrom (sit.get160 ());
 
-    if (isXRP (issue.currency))
+    if (isICC (issue.currency))
         throw std::runtime_error ("invalid native currency");
 
     issue.account.copyFrom (sit.get160 ());
 
-    if (isXRP (issue.account))
+    if (isICC (issue.account))
         throw std::runtime_error ("invalid native account");
 
     // 10 bits for the offset, sign and "not native" flag
@@ -436,7 +436,7 @@ STAmount::setValue (std::string const& amount)
 
         mIsNegative = (match[1].matched && (match[1] == "-"));
 
-        // Can't specify XRP using fractional representation
+        // Can't specify ICC using fractional representation
         if (mIsNative && match[3].matched)
             return false;
 
@@ -478,7 +478,7 @@ void
 STAmount::setIssue (Issue const& issue)
 {
     mIssue = std::move(issue);
-    mIsNative = isXRP (*this);
+    mIsNative = isICC (*this);
 }
 
 std::string STAmount::getHumanCurrency () const
@@ -592,7 +592,7 @@ STAmount::getFullText () const
     {
         ret += "/";
 
-        if (isXRP (*this))
+        if (isICC (*this))
             ret += "0";
         else if (mIssue.account == noAccount())
             ret += "1";
@@ -744,7 +744,7 @@ STAmount::isEquivalent (const STBase& t) const
 // inclusive.
 void STAmount::canonicalize ()
 {
-    if (isXRP (*this))
+    if (isICC (*this))
     {
         // native currency amounts should always have an offset of zero
         mIsNative = true;
@@ -905,11 +905,11 @@ amountFromJson (SField const& name, Json::Value const& v)
     if (native)
     {
         if (v.isObject ())
-            throw std::runtime_error ("XRP may not be specified as an object");
+            throw std::runtime_error ("ICC may not be specified as an object");
     }
     else
     {
-        // non-XRP
+        // non-ICC
         if (! to_currency (issue.currency, currency.asString ()))
             throw std::runtime_error ("invalid currency");
 
@@ -917,7 +917,7 @@ amountFromJson (SField const& name, Json::Value const& v)
                 || !to_issuer (issue.account, issuer.asString ()))
             throw std::runtime_error ("invalid issuer");
 
-        if (isXRP (issue.currency))
+        if (isICC (issue.currency))
             throw std::runtime_error ("invalid issuer");
     }
 
@@ -1176,7 +1176,7 @@ multiply (STAmount const& v1, STAmount const& v2, Issue const& issue)
     if (v1 == zero || v2 == zero)
         return STAmount (issue);
 
-    if (v1.native() && v2.native() && isXRP (issue))
+    if (v1.native() && v2.native() && isICC (issue))
     {
         std::uint64_t const minV = getSNValue (v1) < getSNValue (v2)
                 ? getSNValue (v1) : getSNValue (v2);
@@ -1286,7 +1286,7 @@ mulRound (STAmount const& v1, STAmount const& v2,
     if (v1 == zero || v2 == zero)
         return {issue};
 
-    if (v1.native() && v2.native() && isXRP (issue))
+    if (v1.native() && v2.native() && isICC (issue))
     {
         std::uint64_t minV = (getSNValue (v1) < getSNValue (v2)) ?
                 getSNValue (v1) : getSNValue (v2);
@@ -1343,7 +1343,7 @@ mulRound (STAmount const& v1, STAmount const& v2,
     std::uint64_t amount = v.getuint64 ();
     int offset = offset1 + offset2 + 14;
     canonicalizeRound (
-        isXRP (issue), amount, offset, resultNegative != roundUp);
+        isICC (issue), amount, offset, resultNegative != roundUp);
     return STAmount (issue, amount, offset, resultNegative);
 }
 
@@ -1394,7 +1394,7 @@ divRound (STAmount const& num, STAmount const& den,
     std::uint64_t amount = v.getuint64 ();
     int offset = numOffset - denOffset - 17;
     canonicalizeRound (
-        isXRP (issue), amount, offset, resultNegative != roundUp);
+        isICC (issue), amount, offset, resultNegative != roundUp);
     return STAmount (issue, amount, offset, resultNegative);
 }
 

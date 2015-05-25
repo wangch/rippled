@@ -169,11 +169,11 @@ bool PathRequest::isValid (RippleLineCache::ref crCache)
             if (!asDst)
             {
                 // no destination account
-                jvDestCur.append (Json::Value ("XRP"));
+                jvDestCur.append (Json::Value ("ICC"));
 
                 if (!saDstAmount.isNative ())
                 {
-                    // only XRP can be send to a non-existent account
+                    // only ICC can be send to a non-existent account
                     bValid = false;
                     jvStatus = rpcError (rpcACT_NOT_FOUND);
                 }
@@ -186,11 +186,11 @@ bool PathRequest::isValid (RippleLineCache::ref crCache)
             }
             else
             {
-                bool const disallowXRP (
-                    asDst->peekSLE ().getFlags() & lsfDisallowXRP);
+                bool const disallowICC (
+                    asDst->peekSLE ().getFlags() & lsfDisallowICC);
 
                 auto usDestCurrID = accountDestCurrencies (
-                        raDstAccount, crCache, !disallowXRP);
+                        raDstAccount, crCache, !disallowICC);
 
                 for (auto const& currency : usDestCurrID)
                     jvDestCur.append (to_string (currency));
@@ -396,7 +396,7 @@ Json::Value PathRequest::doUpdate (RippleLineCache::ref cache, bool fast)
             if (!sameAccount || (c != saDstAmount.getCurrency ()))
             {
                 if (c.isZero ())
-                    sourceCurrencies.insert ({c, xrpAccount()});
+                    sourceCurrencies.insert ({c, iccAccount()});
                 else
                     sourceCurrencies.insert ({c, raSrcAccount.getAccountID ()});
             }
@@ -480,10 +480,10 @@ Json::Value PathRequest::doUpdate (RippleLineCache::ref cache, bool fast)
         if (valid)
         {
             LedgerEntrySet lesSandbox (cache->getLedger (), tapNONE);
-            auto& sourceAccount = !isXRP (currIssuer.account)
+            auto& sourceAccount = !isICC (currIssuer.account)
                     ? currIssuer.account
-                    : isXRP (currIssuer.currency)
-                        ? xrpAccount()
+                    : isICC (currIssuer.currency)
+                        ? iccAccount()
                         : raSrcAccount.getAccountID ();
             STAmount saMaxAmount ({currIssuer.currency, sourceAccount}, 1);
 

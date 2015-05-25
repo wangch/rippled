@@ -138,7 +138,7 @@ STTx::getMentionedAccounts () const
         {
             auto const& issuer = sa->getIssuer ();
 
-            if (isXRP (issuer))
+            if (isICC (issuer))
                 continue;
 
             RippleAddress na;

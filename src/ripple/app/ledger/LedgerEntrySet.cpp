@@ -1183,7 +1183,7 @@ STAmount LedgerEntrySet::accountHolds (
 
 bool LedgerEntrySet::isGlobalFrozen (Account const& issuer)
 {
-    if (isXRP (issuer))
+    if (isICC (issuer))
         return false;
 
     SLE::pointer sle = entryCache (ltACCOUNT_ROOT, getAccountRootIndex (issuer));
@@ -1200,7 +1200,7 @@ bool LedgerEntrySet::isFrozen(
     Currency const& currency,
     Account const& issuer)
 {
-    if (isXRP (currency))
+    if (isICC (currency))
         return false;
 
     SLE::pointer sle = entryCache (ltACCOUNT_ROOT, getAccountRootIndex (issuer));
@@ -1470,8 +1470,8 @@ TER LedgerEntrySet::rippleCredit (
 
     TER terResult;
 
-    assert (!isXRP (uSenderID) && uSenderID != noAccount());
-    assert (!isXRP (uReceiverID) && uReceiverID != noAccount());
+    assert (!isICC (uSenderID) && uSenderID != noAccount());
+    assert (!isICC (uReceiverID) && uReceiverID != noAccount());
 
     if (!sleRippleState)
     {
@@ -1624,7 +1624,7 @@ TER LedgerEntrySet::rippleSend (
     auto const issuer   = saAmount.getIssuer ();
     TER             terResult;
 
-    assert (!isXRP (uSenderID) && !isXRP (uReceiverID));
+    assert (!isICC (uSenderID) && !isICC (uReceiverID));
     assert (uSenderID != uReceiverID);
 
     if (uSenderID == issuer || uReceiverID == issuer || issuer == noAccount())
@@ -1686,7 +1686,7 @@ TER LedgerEntrySet::accountSend (
 
     cacheCredit (uSenderID, uReceiverID, saAmount);
 
-    /* XRP send which does not check reserve and can do pure adjustment.
+    /* ICC send which does not check reserve and can do pure adjustment.
      * Note that sender or receiver may be null and this not a mistake; this
      * setup is used during pathfinding and it is carefully controlled to
      * ensure that transfers are balanced.
@@ -1728,7 +1728,7 @@ TER LedgerEntrySet::accountSend (
         }
         else
         {
-            // Decrement XRP balance.
+            // Decrement ICC balance.
             sender->setFieldAmount (sfBalance,
                 sender->getFieldAmount (sfBalance) - saAmount);
             entryModify (sender);
@@ -1737,7 +1737,7 @@ TER LedgerEntrySet::accountSend (
 
     if (tesSUCCESS == terResult && receiver)
     {
-        // Increment XRP balance.
+        // Increment ICC balance.
         receiver->setFieldAmount (sfBalance,
             receiver->getFieldAmount (sfBalance) + saAmount);
         entryModify (receiver);
@@ -1817,7 +1817,7 @@ TER LedgerEntrySet::issue_iou (
     STAmount const& amount,
     Issue const& issue)
 {
-    assert (!isXRP (account) && !isXRP (issue.account));
+    assert (!isICC (account) && !isICC (issue.account));
 
     // Consistency check
     assert (issue == amount.issue ());
@@ -1894,7 +1894,7 @@ TER LedgerEntrySet::redeem_iou (
     STAmount const& amount,
     Issue const& issue)
 {
-    assert (!isXRP (account) && !isXRP (issue.account));
+    assert (!isICC (account) && !isICC (issue.account));
 
     // Consistency check
     assert (issue == amount.issue ());
@@ -1956,7 +1956,7 @@ TER LedgerEntrySet::redeem_iou (
     return tesSUCCESS;
 }
 
-TER LedgerEntrySet::transfer_xrp (
+TER LedgerEntrySet::transfer_icc (
     Account const& from,
     Account const& to,
     STAmount const& amount)
@@ -1971,7 +1971,7 @@ TER LedgerEntrySet::transfer_xrp (
     SLE::pointer receiver = entryCache (ltACCOUNT_ROOT,
         getAccountRootIndex (to));
 
-    WriteLog (lsTRACE, LedgerEntrySet) << "transfer_xrp: " <<
+    WriteLog (lsTRACE, LedgerEntrySet) << "transfer_icc: " <<
         to_string (from) <<  " -> " << to_string (to) <<
         ") : " << amount.getFullText ();
 
@@ -1983,7 +1983,7 @@ TER LedgerEntrySet::transfer_xrp (
             : tecFAILED_PROCESSING;
     }
 
-    // Decrement XRP balance.
+    // Decrement ICC balance.
     sender->setFieldAmount (sfBalance,
         sender->getFieldAmount (sfBalance) - amount);
     entryModify (sender);

@@ -78,9 +78,9 @@ TER PathCursor::deliverNodeForward (
         else if (resultCode == tesSUCCESS)
         {
             // Doesn't charge input. Input funds are in limbo.
-            // There's no fee if we're transferring XRP, if the sender is the
+            // There's no fee if we're transferring ICC, if the sender is the
             // issuer, or if the receiver is the issuer.
-            bool noFee = isXRP (previousNode().issue_)
+            bool noFee = isICC (previousNode().issue_)
                 || uInAccountID == previousNode().issue_.account
                 || node().offerOwnerAccount_ == previousNode().issue_.account;
             const STAmount saInFeeRate = noFee ? saOne
@@ -174,11 +174,11 @@ TER PathCursor::deliverNodeForward (
                 continue;
             }
 
-            if (!isXRP(nextNode().account_))
+            if (!isICC(nextNode().account_))
             {
                 // ? --> OFFER --> account
                 // Input fees: vary based upon the consumed offer's owner.
-                // Output fees: none as XRP or the destination account is the
+                // Output fees: none as ICC or the destination account is the
                 // issuer.
 
                 saOutPassAct = saOutPassMax;
@@ -193,7 +193,7 @@ TER PathCursor::deliverNodeForward (
                     << " saOutPassAct=" << saOutPassAct
                     << " saOutFunded=" << saOutFunded;
 
-                // Output: Debit offer owner, send XRP or non-XPR to next
+                // Output: Debit offer owner, send ICC or non-XPR to next
                 // account.
                 resultCode = ledger().accountSend (
                     node().offerOwnerAccount_,
@@ -249,8 +249,8 @@ TER PathCursor::deliverNodeForward (
                 // Do outbound debiting.
                 // Send to issuer/limbo total amount including fees (issuer gets
                 // fees).
-                auto const& id = isXRP(node().issue_) ?
-                        xrpAccount() : node().issue_.account;
+                auto const& id = isICC(node().issue_) ?
+                        iccAccount() : node().issue_.account;
                 auto outPassTotal = saOutPassAct + saOutPassFees;
                 ledger().accountSend (
                     node().offerOwnerAccount_,
@@ -281,11 +281,11 @@ TER PathCursor::deliverNodeForward (
             // Credit offer owner from in issuer/limbo (input transfer fees left
             // with owner).  Don't attempt to have someone credit themselves, it
             // is redundant.
-            if (isXRP (previousNode().issue_.currency)
+            if (isICC (previousNode().issue_.currency)
                 || uInAccountID != node().offerOwnerAccount_)
             {
-                auto id = !isXRP(previousNode().issue_.currency) ?
-                        uInAccountID : xrpAccount();
+                auto id = !isICC(previousNode().issue_.currency) ?
+                        uInAccountID : iccAccount();
                 resultCode = ledger().accountSend (
                     id,
                     node().offerOwnerAccount_,
